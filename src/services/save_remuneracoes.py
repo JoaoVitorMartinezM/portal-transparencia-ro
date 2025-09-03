@@ -12,35 +12,38 @@ from src.utils.similaridade import similaridade
 
 def save_remuneracoes():
 
-    data = date(day=1, month=6, year=2025)
+    data = date(day=1, month=9, year=2025)
 
     remuneracoes_json = remuneracao_deputados(data)
+    print(remuneracoes_json)
+    for json_data in remuneracoes_json:
+        for key, value in json_data.items():
+            mes, ano = key.split('-')
+            data = date(day=1, month=int(mes), year=int(ano))
+            for r in value:
+                codigo = r.get("codigo", None)
 
-    for r in remuneracoes_json:
+                with ORM() as db:
+                    session: Session= db.session
 
-        codigo = r.get("codigo", None)
+                    id_remuneracao = session.query(Remuneracao.codigo).where(Remuneracao.codigo == codigo).scalar()
 
-        with ORM() as db:
-            session: Session= db.session
+                    if id_remuneracao:
+                        continue
 
-            id_remuneracao = session.query(Remuneracao.codigo).where(Remuneracao.codigo == codigo).scalar()
+                    remuneracao = r.get("remuneracao", None)
+                    total_liquido = r.get("totalliq", None)
+                    deputado = r.get("nome", None)
 
-            if id_remuneracao:
-                continue
+                    id_servidor = similaridade(session, deputado)
+                    if not id_servidor:
+                        novo_servidor = Servidor(nome=deputado)
+                        session.add(novo_servidor)
+                        session.commit()
+                        id_servidor = novo_servidor.id
 
-            remuneracao = r.get("remuneracao", None)
-            total_liquido = r.get("totalliq", None)
-            deputado = r.get("nome", None)
-
-            id_servidor = similaridade(session, deputado)
-            if not id_servidor:
-                novo_servidor = Servidor(nome=deputado)
-                session.add(novo_servidor)
-                session.commit()
-                id_servidor = novo_servidor.id
-
-            remuneracao_model = Remuneracao(codigo=codigo, remuneracao=remuneracao, total_liquido=total_liquido, id_servidor=id_servidor)
-            session.add(remuneracao_model)
-            session.commit()
+                    remuneracao_model = Remuneracao(codigo=codigo, remuneracao=remuneracao, total_liquido=total_liquido, id_servidor=id_servidor, data=data)
+                    session.add(remuneracao_model)
+                    session.commit()
 
 

@@ -1,5 +1,5 @@
 from src.database.base import Base
-from sqlalchemy import Column, String, Integer, ForeignKey, Float
+from sqlalchemy import Column, String, Integer, ForeignKey, Float, Date
 from sqlalchemy.orm import relationship
 
 class Remuneracao(Base):
@@ -9,6 +9,7 @@ class Remuneracao(Base):
 
     remuneracao = Column(Float)
     total_liquido = Column(Float)
+    data = Column(Date)
 
     id_servidor = Column(ForeignKey("servidores.id"), nullable=False)
     servidor = relationship("Servidor", back_populates="remuneracoes")

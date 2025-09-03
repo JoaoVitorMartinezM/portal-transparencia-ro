@@ -1,6 +1,6 @@
 import json
 
-from flask import Flask
+from flask import Flask, request
 from flask import jsonify
 from sqlalchemy.orm.session import Session
 from sqlalchemy.sql.expression import select, desc
@@ -63,3 +63,21 @@ def indenizacoes_valor_total():
 
     return jsonify(result_dicts)
 
+@app.route("/indenizacoes")
+def indenizacoes_por_tempo():
+    data_inicio = request.args.get('data_inicio')
+    data_fim = request.args.get('data_fim')
+
+    with (ORM() as db):
+        session: Session = db.session
+
+        stmt = select(
+            VerbaIndenizatoria.data,
+            func.sum(VerbaIndenizatoria.total_pago).label("valor_total")
+        ).group_by(VerbaIndenizatoria.data
+                  ).order_by(VerbaIndenizatoria.data
+                            )
+        result = session.execute(stmt).mappings().all()
+        result_dicts = [dict(row) for row in result]
+
+    return jsonify(result_dicts)

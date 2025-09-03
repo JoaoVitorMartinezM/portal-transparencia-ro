@@ -6,17 +6,15 @@ from src.services import save_remuneracoes
 
 load_dotenv()
 orm = ORM()
-
 orm.generateBD()
 
 # Consulta os servidores públicos da API
-servidores = get_servidores()
+# servidores = get_servidores()
 
 # Salva os servidores públicos no banco de dados
-save_servidores(servidores)
-#
-save_verbas_indenizatorias()
-save_diarias()
+# save_servidores(servidores)
+# save_verbas_indenizatorias()
+# save_diarias()
 save_remuneracoes()
 
 

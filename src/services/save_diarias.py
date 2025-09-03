@@ -38,7 +38,7 @@ from src.utils.similaridade import similaridade
 #         return or_(*grupos)
 
 def save_diarias():
-    data = date(day=1, month=6, year=2025)
+    data = date(day=1, month=9, year=2025)
     diarias_list = diarias_deputados(data)
 
 
