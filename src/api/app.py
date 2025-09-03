@@ -1,8 +1,8 @@
 import json
 import os
 
-from flask import Flask, request
-from flask import jsonify
+from flask import Flask, request, jsonify
+from flask_cors import CORS
 from sqlalchemy.orm.session import Session
 from sqlalchemy.sql.expression import select, desc
 from sqlalchemy.sql.functions import func
@@ -12,6 +12,7 @@ from src.database.models import Servidor, Remuneracao, Diaria, VerbaIndenizatori
 from src.database.orm import ORM
 
 app = Flask(__name__)
+CORS(app)
 
 @app.route("/salarios/total-liquido")
 def salarios_total_liquido():
