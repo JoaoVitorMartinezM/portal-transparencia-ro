@@ -1,4 +1,5 @@
 import json
+import os
 
 from flask import Flask, request
 from flask import jsonify
@@ -81,3 +82,9 @@ def indenizacoes_por_tempo():
         result_dicts = [dict(row) for row in result]
 
     return jsonify(result_dicts)
+
+
+if __name__ == "__main__":
+    # Porta configurada pela variável de ambiente ou padrão 4000
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
