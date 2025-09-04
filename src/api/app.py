@@ -16,14 +16,16 @@ CORS(app)
 
 @app.route("/salarios/total-liquido")
 def salarios_total_liquido():
-    with ORM() as db:
+    with (ORM() as db):
         session: Session = db.session
 
         stmt = select(
             Servidor.nome,
-            Remuneracao.total_liquido
+            Remuneracao.total_liquido,
+            Remuneracao.data
         ).join(Remuneracao
-               ).order_by(desc(Remuneracao.total_liquido)
+               ).group_by(Remuneracao.data
+                        ).order_by(desc(Remuneracao.total_liquido)
                           )
         result = session.execute(stmt).mappings().all()
         result_dicts = [dict(row) for row in result]
