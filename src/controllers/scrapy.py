@@ -18,7 +18,7 @@ def verbas_indenizatorias(data: date):
     url = BASE_URL + PATH
 
     soup_list = []
-    for ano in range(2022, data.year+1):
+    for ano in range(2023, data.year+1):
         for mes in range(1,13):
             if ano>=data.year and mes>=data.month:
                 break
@@ -120,7 +120,7 @@ def diarias_deputados(data: date):
         id = href.split("/")[-1]
         return id
 
-    for ano in range(2022, data.year+1):
+    for ano in range(2023, data.year+1):
 
         for mes in range(1,13):
             if ano>=data.year and mes>=data.month:
@@ -174,7 +174,7 @@ def remuneracao_deputados(data:date):
     url = BASE_URL + PATH
 
     json_data = []
-    for ano in range(2022, data.year+1):
+    for ano in range(2023, data.year+1):
         for mes in range(1,13):
             if ano>=data.year and mes>=data.month:
                 break

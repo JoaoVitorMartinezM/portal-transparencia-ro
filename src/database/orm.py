@@ -3,6 +3,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from src.database.base import Base
 from src.database.models import Servidor
+import os
 
 class ORM:
 
@@ -11,8 +12,11 @@ class ORM:
         self.session = None
 
     def connection(self):
-        db_path = Path(__file__).resolve().parent / "portal-transparencia.db"
-        return create_engine(f'sqlite:///{str(db_path)}', echo=True)
+        banco_producao = os.environ.get("BANCO_PROD", None)
+        if not banco_producao:
+            db_path = Path(__file__).resolve().parent / "portal-transparencia.db"
+            return create_engine(f'sqlite:///{str(db_path)}', echo=True)
+        return  create_engine(banco_producao)
     
     def __enter__(self):
         Session = sessionmaker(bind=self.engine)
