@@ -1,6 +1,6 @@
 import datetime
-import json
 import os
+from tokenize import group
 
 from flask import Flask, request, jsonify
 from flask_cors import CORS
@@ -21,8 +21,32 @@ def salarios_total_liquido():
     nome = request.args.get('nome', '')
     maiorque = request.args.get('maiorque', 0.0)
     maiorque = 0.0 if maiorque == '' else float(maiorque)
-    mes = int(request.args.get('mes', date.today().month))
-    ano = int(request.args.get('ano', date.today().year))
+    mes = request.args.get('mes', None)
+    ano = request.args.get('ano', None)
+    data_inicio = request.args.get('dt_inicio', None)
+    data_fim= request.args.get('dt_fim', None)
+    order_by = request.args.get('order_by', "data")
+    group_by = request.args.get('group_by', "data")
+
+    filtros = [
+        Servidor.nome.like('%{}%'.format(nome)),
+        Remuneracao.total_liquido > maiorque
+    ]
+    if ano:
+        ano = int(ano)
+        filtros.append(extract("year", Remuneracao.data) == ano)
+    if mes:
+        mes =int(mes)
+        filtros.append(extract("month", Remuneracao.data) == mes)
+
+    if data_inicio:
+        data_inicio = datetime.strptime(data_inicio, "%m-%Y")
+        filtros.append(Remuneracao.data >= data_inicio)
+
+    if data_fim:
+        data_fim = datetime.strptime(data_fim, "%m-%Y")
+        filtros.append(Remuneracao.data <= data_fim)
+
 
     with ORM() as db:
         session: Session = db.session
@@ -32,13 +56,11 @@ def salarios_total_liquido():
             Remuneracao.data
         ).join(Remuneracao
                ).where(
-            Servidor.nome.like('%{}%'.format(nome)),
-            Remuneracao.total_liquido > maiorque,
-            extract("year", Remuneracao.data) == ano,
-            extract("month", Remuneracao.data) == mes
-                        ).group_by(Remuneracao.data
-                        ).order_by(desc(Remuneracao.total_liquido)
-                          )
+                        *filtros
+                        ).group_by(None if group_by.__eq__("data") else Servidor.nome
+
+                        ).order_by(Remuneracao.data if order_by.__eq__("data") else desc(Remuneracao.total_liquido))
+
         result = session.execute(stmt).mappings().all()
         result_dicts = [dict(row) for row in result]
 
