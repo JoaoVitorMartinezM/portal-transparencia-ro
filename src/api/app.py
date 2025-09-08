@@ -7,6 +7,7 @@ from flask_cors import CORS
 from sqlalchemy.orm.session import Session
 from sqlalchemy.sql.expression import select, desc, extract
 from sqlalchemy.sql.functions import func
+from sqlalchemy.sql.selectable import Select
 
 from src.database.models import Servidor, Remuneracao, Diaria, VerbaIndenizatoria, VerbaIndenizatoriaDetalhes
 
@@ -50,16 +51,22 @@ def salarios_total_liquido():
 
     with ORM() as db:
         session: Session = db.session
-        stmt = select(
-            Servidor.nome,
-            Remuneracao.total_liquido,
-            Remuneracao.data
-        ).join(Remuneracao
-               ).where(
-                        *filtros
-                        ).group_by(None if group_by.__eq__("data") else Servidor.nome
+        columns: list = [Servidor.nome]
+        soma_total_liquido = func.sum(Remuneracao.total_liquido).label("total_liquido")
+        stmt: Select
 
-                        ).order_by(Remuneracao.data if order_by.__eq__("data") else desc(Remuneracao.total_liquido))
+
+        if group_by.__eq__("data"):
+            columns.extend([Remuneracao.data, Remuneracao.total_liquido])
+            stmt = select(*columns).join(Remuneracao).where(*filtros)
+        else:
+            columns.append(soma_total_liquido)
+            stmt = select(*columns).join(Remuneracao).where(*filtros).group_by(Servidor.nome)
+
+        if order_by.__eq__("data"):
+            stmt = stmt.order_by(Remuneracao.data)
+        else:
+            stmt = stmt.order_by(desc("total_liquido"))
 
         result = session.execute(stmt).mappings().all()
         result_dicts = [dict(row) for row in result]
@@ -161,7 +168,7 @@ def indenizacoes():
     data = request.args.get('data')
     maiorque = request.args.get('maiorque', 0.0)
     maiorque = 0.0 if maiorque == '' else float(maiorque)
-    data = datetime.strptime(data, "%Y-%m") if data else None
+    data = datetime.strptime(data, "%m-%Y") if data else None
 
     filtros = [
         Servidor.nome.like('%{}%'.format(nome)),
