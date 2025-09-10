@@ -38,7 +38,7 @@ from src.utils.similaridade import similaridade
 #         return or_(*grupos)
 
 def save_diarias():
-    data = date(day=1, month=9, year=2025)
+    data = date.today()
     diarias_list = diarias_deputados(data)
 
 
@@ -47,9 +47,7 @@ def save_diarias():
         id_servidor = 0
         with ORM() as db:
             session: Session = db.session
-            # id_servidor = session.query(Servidor.id
-            #                             ).filter(nome_filter(item["Deputado"], Servidor.nome, min_matches=2)
-            #                                      ).order_by(func.char_length(Servidor.nome)).first()[0]
+
             id_servidor = similaridade(session, item.get("Deputado", None))
             if not id_servidor:
                 novo_servidor = Servidor(nome=item.get("Deputado", None))

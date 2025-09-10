@@ -78,18 +78,32 @@ def diarias_valor_total():
     nome = request.args.get('nome', '')
     maiorque = request.args.get('maiorque', 0.0)
     maiorque = 0.0 if maiorque == '' else float(maiorque)
+    data_inicio = request.args.get('dt_inicio', None)
+    data_fim = request.args.get('dt_fim', None)
 
     with ORM() as db:
         session: Session = db.session
         soma_total = func.sum(Diaria.valor_total)
         soma_diarias = func.sum(Diaria.numero_diarias)
+
+        filtros = [
+            Servidor.nome.like('%{}%'.format(nome)),
+        ]
+
+        if data_inicio:
+            data_inicio = datetime.strptime(data_inicio, "%m-%Y")
+            filtros.append(VerbaIndenizatoria.data >= data_inicio)
+        if data_fim:
+            data_fim = datetime.strptime(data_fim, "%m-%Y")
+            filtros.append(VerbaIndenizatoria.data <= data_fim)
+
         stmt = select(
             Servidor.nome,
             soma_total.label("valor_total"),
             soma_diarias.label("num_diarias")
         ).join(Diaria
                ).where(
-            Servidor.nome.like('%{}%'.format(nome)),
+            *filtros
         ).group_by(Servidor.nome
                           ).having(soma_total > maiorque
                                    ).order_by(desc("valor_total"))
@@ -104,16 +118,31 @@ def indenizacoes_valor_total():
     nome = request.args.get('nome', '')
     maiorque = request.args.get('maiorque', 0.0)
     maiorque = 0.0 if maiorque == '' else float(maiorque)
+    data_inicio = request.args.get('dt_inicio', None)
+    data_fim= request.args.get('dt_fim', None)
+
+
     with ORM() as db:
         session: Session = db.session
         soma_total = func.sum(VerbaIndenizatoria.total_pago)
+
+        filtros = [
+            Servidor.nome.like('%{}%'.format(nome))
+        ]
+
+        if data_inicio:
+            data_inicio = datetime.strptime(data_inicio, "%m-%Y")
+            filtros.append(VerbaIndenizatoria.data >= data_inicio)
+        if data_fim:
+            data_fim = datetime.strptime(data_fim, "%m-%Y")
+            filtros.append(VerbaIndenizatoria.data <= data_fim)
 
         stmt = select(
             Servidor.nome,
             soma_total.label("valor_total")
         ).join(VerbaIndenizatoria
                ).where(
-            Servidor.nome.like('%{}%'.format(nome))
+            *filtros
         ).group_by(Servidor.nome
                           ).having(soma_total > maiorque
         ).order_by(desc("valor_total")
@@ -135,11 +164,11 @@ def indenizacoes_por_tempo():
     ]
 
     if data_inicio:
-        data_inicio = datetime.strptime(data_inicio, "%Y-%m-%d")
+        data_inicio = datetime.strptime(data_inicio, "%m-%Y")
         filtros.append(VerbaIndenizatoria.data >= data_inicio)
 
     if data_fim:
-        data_fim = datetime.strptime(data_fim, "%Y-%m-%d")
+        data_fim = datetime.strptime(data_fim, "%m-%Y")
         filtros.append(VerbaIndenizatoria.data <= data_fim)
 
 

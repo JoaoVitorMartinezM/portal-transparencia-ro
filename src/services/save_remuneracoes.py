@@ -11,8 +11,7 @@ from src.utils.similaridade import similaridade
 
 
 def save_remuneracoes():
-
-    data = date(day=1, month=9, year=2025)
+    data = date.today()
 
     remuneracoes_json = remuneracao_deputados(data)
     print(remuneracoes_json)
